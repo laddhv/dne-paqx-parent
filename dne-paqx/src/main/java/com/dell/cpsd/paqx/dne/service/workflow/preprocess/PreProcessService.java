@@ -56,9 +56,9 @@ public class PreProcessService extends BaseService implements IPreProcessService
         return createTask("configIdracTask", new ConfigIdracTaskHandler(nodeService));
     }
 
-    @Bean("bootOrderSequenceTask")
-    private WorkflowTask bootOrderSequenceTask(){
-        return createTask("bootOrderSequenceTask", new BootOrderSequenceTaskHandler(nodeService));
+    @Bean("setBootOrderAndDisablePXE")
+    private WorkflowTask setBootOrderAndDisablePXE(){
+        return createTask("setBootOrderAndDisablePXE", new SetBootOrderAndDisablePXETaskHandler(nodeService));
     }
 
     @Bean("findVClusterTask")
@@ -92,6 +92,7 @@ public class PreProcessService extends BaseService implements IPreProcessService
 
         workflowTasks.put("findAvailableNodes", findDiscoveredNodesTask());
         workflowTasks.put("configIdrac", configIdracTask());
+        workflowTasks.put("setBootOrderAndDisablePXE", setBootOrderAndDisablePXE());
         workflowTasks.put("findVCluster", createVClusterTask());
         workflowTasks.put("findProtectionDomain", findProtectionDomainTask());
         workflowTasks.put("findSystemData", findSystemDataTask());

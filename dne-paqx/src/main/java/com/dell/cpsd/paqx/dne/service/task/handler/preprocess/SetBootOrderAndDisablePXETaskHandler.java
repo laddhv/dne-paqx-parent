@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component;
  * @since 1.0
  */
 @Component
-public class BootOrderSequenceTaskHandler extends BaseTaskHandler implements IWorkflowTaskHandler {
+public class SetBootOrderAndDisablePXETaskHandler extends BaseTaskHandler implements IWorkflowTaskHandler {
 
     /*
      * The logger instance
@@ -39,7 +39,7 @@ public class BootOrderSequenceTaskHandler extends BaseTaskHandler implements IWo
      */
     private WorkflowService workflowService;
 
-    public BootOrderSequenceTaskHandler(NodeService nodeService){
+    public SetBootOrderAndDisablePXETaskHandler(NodeService nodeService){
         this.workflowService = workflowService;
     }
 

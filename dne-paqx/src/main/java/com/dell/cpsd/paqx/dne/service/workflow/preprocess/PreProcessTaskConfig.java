@@ -32,8 +32,8 @@ public class PreProcessTaskConfig {
 //        workflowSteps.put("startPreProcessWorkflow", new Step("findAvailableNodes"));
 //        workflowSteps.put("findAvailableNodes", new Step("configIdrac"));
 //        workflowSteps.put("configIdrac", new Step("bootOrderSequenceTask"));
-        workflowSteps.put("startPreProcessWorkflow", new Step("bootOrderSequenceTask"));
-        workflowSteps.put("bootOrderSequenceTask", new Step("findVCluster"));
+        workflowSteps.put("startPreProcessWorkflow", new Step("setBootOrderAndDisablePXE"));
+        workflowSteps.put("setBootOrderAndDisablePXE", new Step("findVCluster"));
         workflowSteps.put("findVCluster", new Step("findProtectionDomain"));
         workflowSteps.put("findProtectionDomain", new Step("findSystemData"));
         workflowSteps.put("findSystemData", new Step("assignDefaultHostName"));

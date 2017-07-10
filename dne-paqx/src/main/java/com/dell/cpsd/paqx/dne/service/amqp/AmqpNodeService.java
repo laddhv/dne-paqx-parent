@@ -99,10 +99,10 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
     private void initCallbacks()
     {
         this.consumer.addAdapter(new NodesListedResponseAdapter(this));
-        this.consumer.addAdapter(new ClustersListedResponseAdapter(this));
-        this.consumer.addAdapter(new CompleteNodeAllocationResponseAdapter(this));
         this.consumer.addAdapter(new IdracConfigResponseAdapter(this));
         this.consumer.addAdapter(new BootOrderSequenceResponseAdapter(this));
+        this.consumer.addAdapter(new ClustersListedResponseAdapter(this));
+        this.consumer.addAdapter(new CompleteNodeAllocationResponseAdapter(this));
     }
 
     /**
