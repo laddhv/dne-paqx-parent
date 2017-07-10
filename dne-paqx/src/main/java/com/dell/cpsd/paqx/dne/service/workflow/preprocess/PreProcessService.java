@@ -17,7 +17,6 @@ import com.dell.cpsd.paqx.dne.service.task.handler.addnode.FindDiscoveredNodesTa
 import com.dell.cpsd.paqx.dne.service.task.handler.preprocess.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
@@ -55,6 +54,11 @@ public class PreProcessService extends BaseService implements IPreProcessService
     @Bean("configIdracTask")
     private WorkflowTask configIdracTask(){
         return createTask("configIdracTask", new ConfigIdracTaskHandler(nodeService));
+    }
+
+    @Bean("bootOrderSequenceTask")
+    private WorkflowTask bootOrderSequenceTask(){
+        return createTask("bootOrderSequenceTask", new BootOrderSequenceTaskHandler(nodeService));
     }
 
     @Bean("findVClusterTask")

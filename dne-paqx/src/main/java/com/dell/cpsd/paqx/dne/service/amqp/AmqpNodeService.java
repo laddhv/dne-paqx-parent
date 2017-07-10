@@ -13,14 +13,11 @@ import com.dell.converged.capabilities.compute.discovered.nodes.api.NodesListed;
 import com.dell.cpsd.common.logging.ILogger;
 import com.dell.cpsd.paqx.dne.amqp.producer.DneProducer;
 import com.dell.cpsd.paqx.dne.service.NodeService;
-import com.dell.cpsd.paqx.dne.service.amqp.adapter.ClustersListedResponseAdapter;
-import com.dell.cpsd.paqx.dne.service.amqp.adapter.CompleteNodeAllocationResponseAdapter;
-import com.dell.cpsd.paqx.dne.service.amqp.adapter.IdracConfigResponseAdapter;
-import com.dell.cpsd.paqx.dne.service.amqp.adapter.NodesListedResponseAdapter;
-import com.dell.cpsd.paqx.dne.service.model.DiscoveredNode;
-import com.dell.cpsd.paqx.dne.service.model.IdracInfo;
-import com.dell.cpsd.paqx.dne.service.model.IdracNetworkSettingsRequest;
-import com.dell.cpsd.paqx.dne.service.model.VirtualizationCluster;
+import com.dell.cpsd.paqx.dne.service.amqp.adapter.*;
+import com.dell.cpsd.paqx.dne.service.model.*;
+import com.dell.cpsd.rackhd.adapter.model.bootordersequence.BootOrderSequenceRequest;
+import com.dell.cpsd.rackhd.adapter.model.bootordersequence.BootOrderSequenceRequestMessage;
+import com.dell.cpsd.rackhd.adapter.model.bootordersequence.BootOrderSequenceResponseMessage;
 import com.dell.cpsd.rackhd.adapter.model.idrac.IdracNetworkSettings;
 import com.dell.cpsd.rackhd.adapter.model.idrac.IdracNetworkSettingsRequestMessage;
 import com.dell.cpsd.rackhd.adapter.model.idrac.IdracNetworkSettingsResponseMessage;
@@ -94,7 +91,7 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
         initCallbacks();
     }
 
-    /*
+    /**
      * Initialize message consumer adapters.
      * 
      * @since 1.0
@@ -105,11 +102,76 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
         this.consumer.addAdapter(new ClustersListedResponseAdapter(this));
         this.consumer.addAdapter(new CompleteNodeAllocationResponseAdapter(this));
         this.consumer.addAdapter(new IdracConfigResponseAdapter(this));
+        this.consumer.addAdapter(new BootOrderSequenceResponseAdapter(this));
     }
 
     /**
      * {@inheritDoc}
      */
+
+//    @Override
+    public BootOrderSeqResponse bootOrderSequence(BootOrderSeqRequest bootOrderSeqRequest) throws ServiceTimeoutException, ServiceExecutionException{
+
+        BootOrderSeqResponse bootOrderSeqResponse = new BootOrderSeqResponse();
+
+        try{
+            BootOrderSequenceRequestMessage bootOrderSequenceRequestMessage = new BootOrderSequenceRequestMessage();
+
+            com.dell.cpsd.rackhd.adapter.rabbitmq.MessageProperties messageProperties = new com.dell.cpsd.rackhd.adapter.rabbitmq.MessageProperties();
+            messageProperties.setCorrelationId(UUID.randomUUID().toString());
+            messageProperties.setTimestamp(Calendar.getInstance().getTime());
+            messageProperties.setReplyTo(replyTo);
+            bootOrderSequenceRequestMessage.setMessageProperties(messageProperties);
+
+            BootOrderSequenceRequest bootOrderSequenceRequest = new BootOrderSequenceRequest();
+
+            bootOrderSequenceRequest.setNodeId(bootOrderSeqRequest.getNodeId());
+            bootOrderSequenceRequest.setIpAddress(bootOrderSeqRequest.getIdracIpAddress());
+            bootOrderSequenceRequestMessage.setBootOrderSequenceRequest(bootOrderSequenceRequest);
+
+            ServiceResponse<?> response = processRequest(10000L, new ServiceRequestCallback()
+            {
+                @Override
+                public String getRequestId()
+                {
+                    return messageProperties.getCorrelationId();
+                }
+
+                @Override
+                public void executeRequest(String requestId) throws Exception
+                {
+                    producer.publishBootOrderSequence(bootOrderSequenceRequestMessage);
+                }
+            });
+
+            BootOrderSequenceResponseMessage resp = processResponse(response, BootOrderSequenceResponseMessage.class);
+            if (resp != null)
+            {
+                if (resp.getMessageProperties() != null)
+                {
+                    if (resp.getBootOrderSequenceResponse() != null)
+                    {
+                        LOGGER.info("Response message is: " + resp.getBootOrderSequenceResponse().getMessage());
+                    }
+                    if ("SUCCESS".equalsIgnoreCase(resp.getBootOrderSequenceResponse().getMessage()))
+                    {
+                        bootOrderSeqResponse.setMessage(resp.getBootOrderSequenceResponse().getMessage());
+                    }
+                    else
+                    {
+                        LOGGER.error("Error response from boot order sequence: " + resp.getBootOrderSequenceResponse().getMessage());
+                    }
+                }
+
+            }
+        }
+        catch (Exception e){
+            LOGGER.error("Exception in boot order sequence: ", e);
+        }
+        return bootOrderSeqResponse;
+
+    }
+
     @Override
     public IdracInfo idracNetworkSettings(IdracNetworkSettingsRequest idracNetworkSettingsRequest) throws ServiceTimeoutException, ServiceExecutionException
     {

@@ -12,6 +12,7 @@ import com.dell.cpsd.hdp.capability.registry.api.ProviderEndpoint;
 import com.dell.cpsd.hdp.capability.registry.client.binder.CapabilityBinder;
 import com.dell.cpsd.hdp.capability.registry.client.binder.CapabilityData;
 import com.dell.cpsd.hdp.capability.registry.client.helper.AmqpProviderEndpointHelper;
+import com.dell.cpsd.rackhd.adapter.model.bootordersequence.BootOrderSequenceRequestMessage;
 import com.dell.cpsd.rackhd.adapter.model.idrac.IdracNetworkSettingsRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.DiscoverClusterRequestInfoMessage;
 import org.slf4j.Logger;
@@ -39,6 +40,29 @@ public class AmqpDneProducer implements DneProducer
     {
         this.rabbitTemplate = rabbitTemplate;
         this.capabilityBinder = capabilityBinder;
+    }
+
+    /**
+     * Send the <code>BootOrderSequenceRequestMessage</code> to the rackHD service
+     *
+     * @param request - The <code>BootOrderSequenceRequestMessage</code> instance
+     */
+
+    @Override
+    public void publishBootOrderSequence(BootOrderSequenceRequestMessage request)
+    {
+        Collection<CapabilityData> capabilityDatas = capabilityBinder.getCurrentCapabilities();
+        LOGGER.info("publishBootOrderSequence: found list of capablities with size {}", capabilityDatas.size());
+        for (CapabilityData capabilityData : capabilityDatas)
+        {
+            ProviderEndpoint endpoint = capabilityData.getCapability().getProviderEndpoint();
+            AmqpProviderEndpointHelper endpointHelper = new AmqpProviderEndpointHelper(endpoint);
+            if (messageType(BootOrderSequenceRequestMessage.class).equals(endpointHelper.getRequestMessageType()))
+            {
+                LOGGER.info("Publish boot order sequence request message from DNE paqx.");
+                rabbitTemplate.convertAndSend(endpointHelper.getRequestExchange(), endpointHelper.getRequestRoutingKey(), request);
+            }
+        }
     }
 
     @Override
