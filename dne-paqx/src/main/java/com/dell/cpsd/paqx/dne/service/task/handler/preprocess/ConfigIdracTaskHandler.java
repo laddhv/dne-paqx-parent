@@ -6,6 +6,7 @@
 
 package com.dell.cpsd.paqx.dne.service.task.handler.preprocess;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -71,25 +72,23 @@ public class ConfigIdracTaskHandler extends BaseTaskHandler implements IWorkflow
     {
         LOGGER.info("Execute ConfigIdracTaskHandler task");
 
-        IdracNetworkSettingsResponseInfo response = initializeResponse(job);
+        TaskResponse response = initializeResponse(job);
 
         try
         {
             Map<String, TaskResponse> responseMap = job.getTaskResponseMap();
-            FirstAvailableDiscoveredNodeResponse findNodeTask = (FirstAvailableDiscoveredNodeResponse) responseMap
-                    .get("findAvailableNodes");
+            TaskResponse findNodeTask = (FirstAvailableDiscoveredNodeResponse) responseMap.get("findAvailableNodes");
             if (findNodeTask == null)
             {
                 throw new IllegalStateException("No discovered node task found.");
             }
-            
-            NodeInfo nodeInfo = findNodeTask.getNodeInfo();
-            if (nodeInfo == null)
+
+            if (findNodeTask.getResults().get("nodeID") == null)
             {
                 throw new IllegalStateException("No discovered node info found.");
             }
 
-            String nodeId = nodeInfo.getNodeId();
+            String nodeId = findNodeTask.getResults().get("nodeID").toString();
 
             String ipAddress = job.getInputParams().getIdracIpAddress();
             String gatewayIpAddress = job.getInputParams().getIdracGatewayIpAddress();
@@ -107,7 +106,8 @@ public class ConfigIdracTaskHandler extends BaseTaskHandler implements IWorkflow
             IdracInfo idracInfo = nodeService.idracNetworkSettings(idracNetworkSettingsRequest);
             if (idracInfo != null)
             {
-                response.setIdracInfo(idracInfo);
+                response.setResults(buildResponseResult(idracInfo));
+//                response.setIdracInfo(idracInfo);
                 response.setWorkFlowTaskStatus(Status.SUCCEEDED);
                 return true;
             }
@@ -122,6 +122,46 @@ public class ConfigIdracTaskHandler extends BaseTaskHandler implements IWorkflow
         return false;
     }
 
+    /*
+     * This method add all the node information to the response object
+     */
+    private Map<String, Object> buildResponseResult(IdracInfo idracInfo)
+    {
+        Map<String, Object> result = new HashMap<>();
+
+        if (idracInfo == null)
+        {
+            return result;
+        }
+
+        if (idracInfo.getNodeId() != null)
+        {
+            result.put("nodeID", idracInfo.getNodeId());
+        }
+        
+        if (idracInfo.getMessage() != null)
+        {
+            result.put("message", idracInfo.getMessage());
+        }
+        
+        if (idracInfo.getIdracIpAddress() != null)
+        {
+            result.put("idracIpAddress", idracInfo.getIdracIpAddress());
+        }
+        
+        if (idracInfo.getIdracGatewayIpAddress() != null)
+        {
+            result.put("idracGatewayIpAddress", idracInfo.getIdracGatewayIpAddress());
+        }
+
+        if (idracInfo.getIdracSubnetMask() != null)
+        {
+            result.put("idracSubnetMask", idracInfo.getIdracSubnetMask());
+        }
+        
+        return result;
+    }
+    
     /**
      * Create the <code>IdracNetworkSettingsResponseInfo</code> instance and initialize it.
      * 

@@ -15,7 +15,9 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -65,7 +67,7 @@ public class FindDiscoveredNodesTaskHandler extends BaseTaskHandler implements I
     public boolean executeTask(Job job)
     {
         LOGGER.info("Execute Find Discovered Nodes");
-        FirstAvailableDiscoveredNodeResponse response = initializeResponse(job);
+        TaskResponse response = initializeResponse(job);
 
         try
         {
@@ -81,7 +83,9 @@ public class FindDiscoveredNodesTaskHandler extends BaseTaskHandler implements I
                 {
                     NodeInfo nodeInfo = (NodeInfo) nodeInfoList.get(0);
                     LOGGER.info("Found first available node : " + nodeInfo);
-                    response.setNodeInfo(nodeInfo);
+                    LOGGER.info("Building task response based on the node info.");
+                    response.setResults(buildResponseResult(nodeInfo));
+                    // response.setNodeInfo(nodeInfo);
                     response.setWorkFlowTaskStatus(Status.SUCCEEDED);
                     return true;
                 }
@@ -97,6 +101,56 @@ public class FindDiscoveredNodesTaskHandler extends BaseTaskHandler implements I
 
         response.setWorkFlowTaskStatus(Status.FAILED);
         return false;
+    }
+
+    /*
+     * This method add all the node information to the response object
+     */
+    private Map<String, Object> buildResponseResult(NodeInfo nodeInfo)
+    {
+        Map<String, Object> result = new HashMap<>();
+
+        if (nodeInfo == null)
+        {
+            return result;
+        }
+
+        if (nodeInfo.getSymphonyUuid() != null)
+        {
+            result.put("symphonyUUID", nodeInfo.getSymphonyUuid());
+        }
+
+        if (nodeInfo.getNodeId() != null)
+        {
+            result.put("nodeID", nodeInfo.getNodeId());
+        }
+
+        if (nodeInfo.getNodeStatus() != null)
+        {
+            result.put("nodeStatus", nodeInfo.getNodeStatus());
+        }
+
+        if (nodeInfo.getIdentity() != null)
+        {
+            result.put("identity", nodeInfo.getIdentity());
+        }
+
+        if (nodeInfo.getDefinition() != null)
+        {
+            result.put("definition", nodeInfo.getDefinition());
+        }
+
+        if (nodeInfo.getParentGroups() != null)
+        {
+            result.put("parentGroups", nodeInfo.getParentGroups());
+        }
+
+        if (nodeInfo.getEndpoints() != null)
+        {
+            result.put("endpoints", nodeInfo.getEndpoints());
+        }
+
+        return result;
     }
 
     /**

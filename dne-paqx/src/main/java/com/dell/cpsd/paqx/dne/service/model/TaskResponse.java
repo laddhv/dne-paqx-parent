@@ -26,7 +26,7 @@ public class TaskResponse {
     private Status workFlowTaskStatus;
     private List<String> errors;
     private List<String> warnings;
-    private Map<String, String> results;
+    private Map<String, Object> results;
 
     public TaskResponse() {
         errors = new ArrayList<>();
@@ -63,11 +63,11 @@ public class TaskResponse {
         this.workFlowTaskStatus = workFlowTaskStatus;
     }
 
-    public Map<String, String> getResults() {
+    public Map<String, Object> getResults() {
         return results;
     }
 
-    public void setResults(Map<String, String> results) {
+    public void setResults(Map<String, Object> results) {
         this.results = results;
     }
 }
