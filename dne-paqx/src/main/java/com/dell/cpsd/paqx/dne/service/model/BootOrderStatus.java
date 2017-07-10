@@ -1,26 +1,23 @@
-/**
- * Copyright &copy; 2017 Dell Inc. or its subsidiaries.  All Rights Reserved.
- * Dell EMC Confidential/Proprietary Information
- */
-
 package com.dell.cpsd.paqx.dne.service.model;
 
-/**
- * <p>
- * Copyright &copy; 2017 Dell Inc. or its subsidiaries.  All Rights Reserved.
- * Dell EMC Confidential/Proprietary Information
- * </p>
- *
- * @since 1.0
- */
+public class BootOrderStatus {
 
-public class BootOrderSeqResponse {
+    private String status;
     private String message;
 
-    public BootOrderSeqResponse(){}
+    public BootOrderStatus(){}
 
-    public BootOrderSeqResponse(String message){
+    public BootOrderStatus(String status, String message){
+        this.status=status;
         this.message= message;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public String getMessage() {
@@ -34,13 +31,12 @@ public class BootOrderSeqResponse {
     public String toString(){
         StringBuilder builder = new StringBuilder();
 
-        builder.append("BootOrderSequenceInfo{");
+        builder.append("BootOrderStatus{");
+        builder.append("status=").append(this.status);
         builder.append("message=").append(this.message);
         builder.append("}");
 
         return builder.toString();
 
     }
-
-
 }

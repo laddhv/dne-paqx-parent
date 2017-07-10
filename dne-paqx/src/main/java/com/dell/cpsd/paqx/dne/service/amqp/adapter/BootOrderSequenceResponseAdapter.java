@@ -5,7 +5,7 @@
 
 package com.dell.cpsd.paqx.dne.service.amqp.adapter;
 
-import com.dell.cpsd.rackhd.adapter.model.bootordersequence.BootOrderSequenceResponseMessage;
+import com.dell.converged.capabilities.compute.discovered.nodes.api.ConfigureBootDeviceIdracResponseMessage;
 import com.dell.cpsd.service.common.client.callback.IServiceCallback;
 import com.dell.cpsd.service.common.client.callback.ServiceResponse;
 import com.dell.cpsd.service.common.client.rpc.ServiceCallbackAdapter;
@@ -19,7 +19,7 @@ import com.dell.cpsd.service.common.client.rpc.ServiceCallbackRegistry;
  * @since 1.0
  */
 
-public class BootOrderSequenceResponseAdapter implements ServiceCallbackAdapter<BootOrderSequenceResponseMessage, ServiceResponse<BootOrderSequenceResponseMessage>> {
+public class BootOrderSequenceResponseAdapter implements ServiceCallbackAdapter<ConfigureBootDeviceIdracResponseMessage, ServiceResponse<ConfigureBootDeviceIdracResponseMessage>> {
     /**
      * The ServiceCallbackRegistry instance.
      */
@@ -46,7 +46,7 @@ public class BootOrderSequenceResponseAdapter implements ServiceCallbackAdapter<
      * @since 1.0
      */
     @Override
-    public ServiceResponse<BootOrderSequenceResponseMessage> transform(BootOrderSequenceResponseMessage bootOrderSequenceResponse)
+    public ServiceResponse<ConfigureBootDeviceIdracResponseMessage> transform(ConfigureBootDeviceIdracResponseMessage bootOrderSequenceResponse)
     {
         return new ServiceResponse<>(bootOrderSequenceResponse.getMessageProperties().getCorrelationId(), bootOrderSequenceResponse, null);
     }
@@ -60,7 +60,7 @@ public class BootOrderSequenceResponseAdapter implements ServiceCallbackAdapter<
      * @since 1.0
      */
     @Override
-    public void consume(IServiceCallback callback, ServiceResponse<BootOrderSequenceResponseMessage> bootOrderSequenceResponse)
+    public void consume(IServiceCallback callback, ServiceResponse<ConfigureBootDeviceIdracResponseMessage> bootOrderSequenceResponse)
     {
         callback.handleServiceResponse(bootOrderSequenceResponse);
     }
@@ -75,7 +75,7 @@ public class BootOrderSequenceResponseAdapter implements ServiceCallbackAdapter<
      * @since 1.0
      */
     @Override
-    public IServiceCallback take(BootOrderSequenceResponseMessage bootOrderSequenceResponse)
+    public IServiceCallback take(ConfigureBootDeviceIdracResponseMessage bootOrderSequenceResponse)
     {
         return serviceCallbackRegistry.removeServiceCallback(bootOrderSequenceResponse.getMessageProperties().getCorrelationId());
     }
@@ -88,8 +88,8 @@ public class BootOrderSequenceResponseAdapter implements ServiceCallbackAdapter<
      * @since 1.0
      */
     @Override
-    public Class<BootOrderSequenceResponseMessage> getSourceClass()
+    public Class<ConfigureBootDeviceIdracResponseMessage> getSourceClass()
     {
-        return BootOrderSequenceResponseMessage.class;
+        return ConfigureBootDeviceIdracResponseMessage.class;
     }
 }

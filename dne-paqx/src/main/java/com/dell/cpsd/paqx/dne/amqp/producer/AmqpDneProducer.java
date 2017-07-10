@@ -6,13 +6,13 @@
 package com.dell.cpsd.paqx.dne.amqp.producer;
 
 import com.dell.converged.capabilities.compute.discovered.nodes.api.CompleteNodeAllocationRequestMessage;
+import com.dell.converged.capabilities.compute.discovered.nodes.api.ConfigureBootDeviceIdracRequestMessage;
 import com.dell.converged.capabilities.compute.discovered.nodes.api.ListNodes;
 import com.dell.cpsd.common.rabbitmq.annotation.Message;
 import com.dell.cpsd.hdp.capability.registry.api.ProviderEndpoint;
 import com.dell.cpsd.hdp.capability.registry.client.binder.CapabilityBinder;
 import com.dell.cpsd.hdp.capability.registry.client.binder.CapabilityData;
 import com.dell.cpsd.hdp.capability.registry.client.helper.AmqpProviderEndpointHelper;
-import com.dell.cpsd.rackhd.adapter.model.bootordersequence.BootOrderSequenceRequestMessage;
 import com.dell.cpsd.rackhd.adapter.model.idrac.IdracNetworkSettingsRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.DiscoverClusterRequestInfoMessage;
 import org.slf4j.Logger;
@@ -49,7 +49,7 @@ public class AmqpDneProducer implements DneProducer
      */
 
     @Override
-    public void publishBootOrderSequence(BootOrderSequenceRequestMessage request)
+    public void publishBootOrderSequence(ConfigureBootDeviceIdracRequestMessage request)
     {
         Collection<CapabilityData> capabilityDatas = capabilityBinder.getCurrentCapabilities();
         LOGGER.info("publishBootOrderSequence: found list of capablities with size {}", capabilityDatas.size());
@@ -57,7 +57,7 @@ public class AmqpDneProducer implements DneProducer
         {
             ProviderEndpoint endpoint = capabilityData.getCapability().getProviderEndpoint();
             AmqpProviderEndpointHelper endpointHelper = new AmqpProviderEndpointHelper(endpoint);
-            if (messageType(BootOrderSequenceRequestMessage.class).equals(endpointHelper.getRequestMessageType()))
+            if (messageType(ConfigureBootDeviceIdracRequestMessage.class).equals(endpointHelper.getRequestMessageType()))
             {
                 LOGGER.info("Publish boot order sequence request message from DNE paqx.");
                 rabbitTemplate.convertAndSend(endpointHelper.getRequestExchange(), endpointHelper.getRequestRoutingKey(), request);

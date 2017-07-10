@@ -5,19 +5,13 @@
 
 package com.dell.cpsd.paqx.dne.service.amqp;
 
-import com.dell.converged.capabilities.compute.discovered.nodes.api.CompleteNodeAllocationRequestMessage;
-import com.dell.converged.capabilities.compute.discovered.nodes.api.CompleteNodeAllocationResponseMessage;
-import com.dell.converged.capabilities.compute.discovered.nodes.api.ListNodes;
-import com.dell.converged.capabilities.compute.discovered.nodes.api.MessageProperties;
-import com.dell.converged.capabilities.compute.discovered.nodes.api.NodesListed;
+import com.dell.converged.capabilities.compute.discovered.nodes.api.*;
 import com.dell.cpsd.common.logging.ILogger;
 import com.dell.cpsd.paqx.dne.amqp.producer.DneProducer;
 import com.dell.cpsd.paqx.dne.service.NodeService;
 import com.dell.cpsd.paqx.dne.service.amqp.adapter.*;
 import com.dell.cpsd.paqx.dne.service.model.*;
-import com.dell.cpsd.rackhd.adapter.model.bootordersequence.BootOrderSequenceRequest;
-import com.dell.cpsd.rackhd.adapter.model.bootordersequence.BootOrderSequenceRequestMessage;
-import com.dell.cpsd.rackhd.adapter.model.bootordersequence.BootOrderSequenceResponseMessage;
+import com.dell.cpsd.paqx.dne.service.model.DiscoveredNode;
 import com.dell.cpsd.rackhd.adapter.model.idrac.IdracNetworkSettings;
 import com.dell.cpsd.rackhd.adapter.model.idrac.IdracNetworkSettingsRequestMessage;
 import com.dell.cpsd.rackhd.adapter.model.idrac.IdracNetworkSettingsResponseMessage;
@@ -31,7 +25,6 @@ import com.dell.cpsd.virtualization.capabilities.api.ClusterInfo;
 import com.dell.cpsd.virtualization.capabilities.api.DiscoverClusterRequestInfoMessage;
 import com.dell.cpsd.virtualization.capabilities.api.DiscoverClusterResponseInfo;
 import com.dell.cpsd.virtualization.capabilities.api.DiscoverClusterResponseInfoMessage;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,25 +102,22 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
      * {@inheritDoc}
      */
 
-//    @Override
-    public BootOrderSeqResponse bootOrderSequence(BootOrderSeqRequest bootOrderSeqRequest) throws ServiceTimeoutException, ServiceExecutionException{
+    @Override
+    public BootOrderStatus bootOrderStatus(BootOrderSequenceRequest bootOrderSequenceRequest) throws ServiceTimeoutException, ServiceExecutionException{
 
-        BootOrderSeqResponse bootOrderSeqResponse = new BootOrderSeqResponse();
+        BootOrderStatus bootOrderStatus = new BootOrderStatus();
 
         try{
-            BootOrderSequenceRequestMessage bootOrderSequenceRequestMessage = new BootOrderSequenceRequestMessage();
+            ConfigureBootDeviceIdracRequestMessage configureBootDeviceIdracRequestMessage = new ConfigureBootDeviceIdracRequestMessage();
 
-            com.dell.cpsd.rackhd.adapter.rabbitmq.MessageProperties messageProperties = new com.dell.cpsd.rackhd.adapter.rabbitmq.MessageProperties();
+            MessageProperties messageProperties = new MessageProperties();
             messageProperties.setCorrelationId(UUID.randomUUID().toString());
             messageProperties.setTimestamp(Calendar.getInstance().getTime());
             messageProperties.setReplyTo(replyTo);
-            bootOrderSequenceRequestMessage.setMessageProperties(messageProperties);
+            configureBootDeviceIdracRequestMessage.setMessageProperties(messageProperties);
 
-            BootOrderSequenceRequest bootOrderSequenceRequest = new BootOrderSequenceRequest();
-
-            bootOrderSequenceRequest.setNodeId(bootOrderSeqRequest.getNodeId());
-            bootOrderSequenceRequest.setIpAddress(bootOrderSeqRequest.getIdracIpAddress());
-            bootOrderSequenceRequestMessage.setBootOrderSequenceRequest(bootOrderSequenceRequest);
+            configureBootDeviceIdracRequestMessage.setNodeID(bootOrderSequenceRequest.getNodeId());
+            configureBootDeviceIdracRequestMessage.setIpAddress(bootOrderSequenceRequest.getIdracIpAddress());
 
             ServiceResponse<?> response = processRequest(10000L, new ServiceRequestCallback()
             {
@@ -140,26 +130,25 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
                 @Override
                 public void executeRequest(String requestId) throws Exception
                 {
-                    producer.publishBootOrderSequence(bootOrderSequenceRequestMessage);
+                    producer.publishBootOrderSequence(configureBootDeviceIdracRequestMessage);
                 }
             });
 
-            BootOrderSequenceResponseMessage resp = processResponse(response, BootOrderSequenceResponseMessage.class);
+            ConfigureBootDeviceIdracResponseMessage resp = processResponse(response, ConfigureBootDeviceIdracResponseMessage.class);
             if (resp != null)
             {
                 if (resp.getMessageProperties() != null)
                 {
-                    if (resp.getBootOrderSequenceResponse() != null)
+                    if (resp.getStatus() != null)
                     {
-                        LOGGER.info("Response message is: " + resp.getBootOrderSequenceResponse().getMessage());
-                    }
-                    if ("SUCCESS".equalsIgnoreCase(resp.getBootOrderSequenceResponse().getMessage()))
-                    {
-                        bootOrderSeqResponse.setMessage(resp.getBootOrderSequenceResponse().getMessage());
-                    }
-                    else
-                    {
-                        LOGGER.error("Error response from boot order sequence: " + resp.getBootOrderSequenceResponse().getMessage());
+                        LOGGER.info("Response message is: " + resp.getStatus().toString());
+
+                        if ("SUCCESS".equalsIgnoreCase(resp.getStatus().toString()))
+                        {
+                            bootOrderStatus.setMessage(resp.getStatus().toString());
+                        } else {
+                            LOGGER.error("Error response from boot order sequence: " + resp.getConfigureBootDeviceIdracErrors());
+                        }
                     }
                 }
 
@@ -168,8 +157,7 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
         catch (Exception e){
             LOGGER.error("Exception in boot order sequence: ", e);
         }
-        return bootOrderSeqResponse;
-
+        return bootOrderStatus;
     }
 
     @Override

@@ -6,8 +6,8 @@
 package com.dell.cpsd.paqx.dne.amqp.producer;
 
 import com.dell.converged.capabilities.compute.discovered.nodes.api.CompleteNodeAllocationRequestMessage;
+import com.dell.converged.capabilities.compute.discovered.nodes.api.ConfigureBootDeviceIdracRequestMessage;
 import com.dell.converged.capabilities.compute.discovered.nodes.api.ListNodes;
-import com.dell.cpsd.rackhd.adapter.model.bootordersequence.BootOrderSequenceRequestMessage;
 import com.dell.cpsd.rackhd.adapter.model.idrac.IdracNetworkSettingsRequestMessage;
 import com.dell.cpsd.virtualization.capabilities.api.DiscoverClusterRequestInfoMessage;
 
@@ -55,5 +55,5 @@ public interface DneProducer
      *
      * @param request
      */
-    void publishBootOrderSequence(BootOrderSequenceRequestMessage request);
+    void publishBootOrderSequence(ConfigureBootDeviceIdracRequestMessage request);
 }

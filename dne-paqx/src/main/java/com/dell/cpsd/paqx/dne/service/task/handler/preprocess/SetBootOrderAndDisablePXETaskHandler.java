@@ -9,13 +9,13 @@ package com.dell.cpsd.paqx.dne.service.task.handler.preprocess;
 import com.dell.cpsd.paqx.dne.domain.IWorkflowTaskHandler;
 import com.dell.cpsd.paqx.dne.domain.Job;
 import com.dell.cpsd.paqx.dne.service.NodeService;
-import com.dell.cpsd.paqx.dne.service.WorkflowService;
-import com.dell.cpsd.paqx.dne.service.model.Status;
-import com.dell.cpsd.paqx.dne.service.model.TaskResponse;
+import com.dell.cpsd.paqx.dne.service.model.*;
 import com.dell.cpsd.paqx.dne.service.task.handler.BaseTaskHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
 
 /**
  * Task responsible for handling Boot Order Sequence
@@ -29,31 +29,94 @@ import org.springframework.stereotype.Component;
 @Component
 public class SetBootOrderAndDisablePXETaskHandler extends BaseTaskHandler implements IWorkflowTaskHandler {
 
-    /*
+    /**
      * The logger instance
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(AssignDefaultHostNameTaskHandler.class);
 
-    /*
+    /**
      * The <code>NodeService</code> instance
      */
-    private WorkflowService workflowService;
+    private NodeService nodeService;
 
+    /**
+     *  SetBootOrderAndDisablePXETaskHandler constructor.
+     *
+     * @param nodeService
+     *            - The <code>NodeService</code> instance.
+     *
+     * @since 1.0
+     */
     public SetBootOrderAndDisablePXETaskHandler(NodeService nodeService){
-        this.workflowService = workflowService;
+        this.nodeService = nodeService;
     }
 
+    /**
+     * Perform the task of setting up boot order and disabling PXE
+     *
+     * @param job
+     *            - The <code>Job</code> this task is part of.
+     *
+     * @since 1.0
+     */
     @Override
     public boolean executeTask(Job job)
-    {
-        LOGGER.info("Execute BootOrderSequence Task");
-        TaskResponse response = initializeResponse(job);
-        try {
-            Thread.sleep(20000);
+    {   LOGGER.info("Execute BootOrderSequence Task");
+        BootOrderSequenceResponse response = initializeResponse(job);
+
+        try
+        {
+            Map<String, TaskResponse> responseMap = job.getTaskResponseMap();
+            FirstAvailableDiscoveredNodeResponse findNodeTask = (FirstAvailableDiscoveredNodeResponse) responseMap
+                    .get("findAvailableNodes");
+            if (findNodeTask == null)
+            {
+                throw new IllegalStateException("No discovered node task found.");
+            }
+            NodeInfo nodeInfo = findNodeTask.getNodeInfo();
+            if (nodeInfo == null)
+            {
+                throw new IllegalStateException("No discovered node info found.");
+            }
+            String nodeId = nodeInfo.getNodeId();
+            String ipAddress = job.getInputParams().getIdracIpAddress();
+
+            LOGGER.info("NodeId:" + nodeId);
+            LOGGER.info("ipAddress:" + ipAddress);
+
+            BootOrderSequenceRequest bootOrderSequenceRequest = new BootOrderSequenceRequest();
+            bootOrderSequenceRequest.setNodeId(nodeId);
+            bootOrderSequenceRequest.setIdracIpAddress(ipAddress);
+
+            BootOrderStatus bootOrderStatus = nodeService.bootOrderStatus(bootOrderSequenceRequest);
+            if (bootOrderStatus != null)
+            {
+                response.setBootOrderStatus(bootOrderStatus);
+                response.setWorkFlowTaskStatus(Status.SUCCEEDED);
+                return true;
+            }
         }
-        catch(Exception e){}
-        response.setWorkFlowTaskStatus(Status.SUCCEEDED);
-        return true;
+        catch(Exception e){
+            LOGGER.error("Error showing boot order status", e);
+            response.addError(e.toString());
+        }
+        response.setWorkFlowTaskStatus(Status.FAILED);
+        return false;
     }
 
+    /**
+     * Create the <code>BootOrderSequenceResponse</code> instance and initialize it.
+     *
+     * @param job
+     *            - The <code>Job</code> this task is part of.
+     */
+    @Override
+    public BootOrderSequenceResponse initializeResponse(Job job)
+    {
+        BootOrderSequenceResponse response = new BootOrderSequenceResponse();
+        response.setWorkFlowTaskName(job.getCurrentTask().getTaskName());
+        response.setWorkFlowTaskStatus(Status.IN_PROGRESS);
+        job.addTaskResponse(job.getStep(), response);
+        return response;
+    }
 }

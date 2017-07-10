@@ -5,10 +5,7 @@
 
 package com.dell.cpsd.paqx.dne.service;
 
-import com.dell.cpsd.paqx.dne.service.model.DiscoveredNode;
-import com.dell.cpsd.paqx.dne.service.model.IdracInfo;
-import com.dell.cpsd.paqx.dne.service.model.IdracNetworkSettingsRequest;
-import com.dell.cpsd.paqx.dne.service.model.VirtualizationCluster;
+import com.dell.cpsd.paqx.dne.service.model.*;
 import com.dell.cpsd.service.common.client.exception.ServiceExecutionException;
 import com.dell.cpsd.service.common.client.exception.ServiceTimeoutException;
 
@@ -54,5 +51,18 @@ public interface NodeService
      * @throws ServiceExecutionException
      */
     IdracInfo idracNetworkSettings(IdracNetworkSettingsRequest idracNetworkSettingsRequest)
+            throws ServiceTimeoutException, ServiceExecutionException;
+
+    /**
+     * Configure the iDRAC network settings.
+     *
+     * @param bootOrderSequenceRequest - The <code>BootOrderSequenceRequest</code> instance.
+     *
+     * @return
+     * @throws ServiceTimeoutException
+     * @throws ServiceExecutionException
+     */
+
+    BootOrderStatus bootOrderStatus(BootOrderSequenceRequest bootOrderSequenceRequest)
             throws ServiceTimeoutException, ServiceExecutionException;
 }

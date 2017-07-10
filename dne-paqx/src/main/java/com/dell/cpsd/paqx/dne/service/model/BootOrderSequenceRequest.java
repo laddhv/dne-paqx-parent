@@ -14,13 +14,13 @@ package com.dell.cpsd.paqx.dne.service.model;
  * @since 1.0
  */
 
-public class BootOrderSeqRequest {
+public class BootOrderSequenceRequest {
     private String nodeId;
     private String idracIpAddress;
 
-    public BootOrderSeqRequest(){}
+    public BootOrderSequenceRequest(){}
 
-    public BootOrderSeqRequest(String nodeId, String idracIpAddress){
+    public BootOrderSequenceRequest(String nodeId, String idracIpAddress){
         this.nodeId = nodeId;
         this.idracIpAddress = idracIpAddress;
     }
