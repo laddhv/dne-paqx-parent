@@ -29,10 +29,10 @@ public class PreProcessTaskConfig {
     public Map<String, Step> preProcessWorkflowSteps(){
         final Map<String, Step> workflowSteps = new HashMap<>();
 
-//        workflowSteps.put("startPreProcessWorkflow", new Step("findAvailableNodes"));
-//        workflowSteps.put("findAvailableNodes", new Step("configIdrac"));
-//        workflowSteps.put("configIdrac", new Step("bootOrderSequenceTask"));
-        workflowSteps.put("startPreProcessWorkflow", new Step("setBootOrderAndDisablePXE"));
+        workflowSteps.put("startPreProcessWorkflow", new Step("findAvailableNodes"));
+        workflowSteps.put("findAvailableNodes", new Step("configIdrac"));
+        workflowSteps.put("configIdrac", new Step("setBootOrderAndDisablePXE"));
+//        workflowSteps.put("startPreProcessWorkflow", new Step("setBootOrderAndDisablePXE"));
         workflowSteps.put("setBootOrderAndDisablePXE", new Step("findVCluster"));
         workflowSteps.put("findVCluster", new Step("findProtectionDomain"));
         workflowSteps.put("findProtectionDomain", new Step("findSystemData"));

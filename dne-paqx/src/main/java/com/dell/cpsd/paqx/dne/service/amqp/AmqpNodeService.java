@@ -27,11 +27,9 @@ import com.dell.cpsd.virtualization.capabilities.api.DiscoverClusterResponseInfo
 import com.dell.cpsd.virtualization.capabilities.api.DiscoverClusterResponseInfoMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -143,11 +141,14 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
                     {
                         LOGGER.info("Response message is: " + resp.getStatus().toString());
 
-                        if ("SUCCESS".equalsIgnoreCase(resp.getStatus().toString()))
-                        {
-                            bootOrderStatus.setMessage(resp.getStatus().toString());
-                        } else {
-                            LOGGER.error("Error response from boot order sequence: " + resp.getConfigureBootDeviceIdracErrors());
+                        bootOrderStatus.setStatus(resp.getStatus().toString());
+                        List<ConfigureBootDeviceIdracError> errors = resp.getConfigureBootDeviceIdracErrors();
+                        if(!CollectionUtils.isEmpty(errors)) {
+                            List<String> errorMsgs = new ArrayList<String>();
+                            for (ConfigureBootDeviceIdracError error : errors) {
+                                errorMsgs.add(error.getMessage());
+                            }
+                            bootOrderStatus.setErrors(errorMsgs);
                         }
                     }
                 }

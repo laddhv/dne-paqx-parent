@@ -1,15 +1,17 @@
 package com.dell.cpsd.paqx.dne.service.model;
 
+import java.util.List;
+
 public class BootOrderStatus {
 
     private String status;
-    private String message;
+    private List<String> errors;
 
     public BootOrderStatus(){}
 
-    public BootOrderStatus(String status, String message){
+    public BootOrderStatus(String status, List<String> errors){
         this.status=status;
-        this.message= message;
+        this.errors= errors;
     }
 
     public String getStatus() {
@@ -20,20 +22,21 @@ public class BootOrderStatus {
         this.status = status;
     }
 
-    public String getMessage() {
-        return message;
+    public List<String> getErrors() {
+        return errors;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setErrors(List<String> errors) {
+        this.errors = errors;
     }
+
 
     public String toString(){
         StringBuilder builder = new StringBuilder();
 
         builder.append("BootOrderStatus{");
         builder.append("status=").append(this.status);
-        builder.append("message=").append(this.message);
+        builder.append("errors=").append(this.errors);
         builder.append("}");
 
         return builder.toString();

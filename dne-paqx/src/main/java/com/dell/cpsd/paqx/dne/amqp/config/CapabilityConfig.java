@@ -61,6 +61,8 @@ public class CapabilityConfig
                         .withProfile("vcenter-discover-cluster"),
                new CapabilityMatcher().withCardinalReduction(CapabilityMatcher.CardinalReduction.ANY)
                         .withProfile("rackhd-configure-idrac-network"),
+                new CapabilityMatcher().withCardinalReduction(CapabilityMatcher.CardinalReduction.ANY)
+                        .withProfile("rackhd-boot-order-sequence"),
                new CapabilityMatcher().withCardinalReduction(CapabilityMatcher.CardinalReduction.ANY)
                         .withProfile("manage-node-allocation")
         );
