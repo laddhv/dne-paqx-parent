@@ -12,6 +12,7 @@ public enum Status {
     NEW,
     SUBMITTED,
     IN_PROGRESS,
+    COMPLETED,
     REJECTED,
     SUCCEEDED,
     FAILED

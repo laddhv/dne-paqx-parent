@@ -83,11 +83,16 @@ public class FindDiscoveredNodesTaskHandler extends BaseTaskHandler implements I
                     LOGGER.info("Found first available node : " + nodeInfo);
                     response.setNodeInfo(nodeInfo);
                     response.setWorkFlowTaskStatus(Status.SUCCEEDED);
-                    return true;
                 }
+                else {
+                    job.setStatus(Status.COMPLETED);
+                    response.setWorkFlowTaskStatus(Status.SUCCEEDED);
+
+                    LOGGER.warn("No discovered nodes found");
+                }
+                return true;
             }
 
-            LOGGER.warn("No discovered nodes found");
         }
         catch (Exception e)
         {
