@@ -64,7 +64,9 @@ public class CapabilityConfig
                 new CapabilityMatcher().withCardinalReduction(CapabilityMatcher.CardinalReduction.ANY)
                         .withProfile("rackhd-configure-boot-device-idrac"),
                new CapabilityMatcher().withCardinalReduction(CapabilityMatcher.CardinalReduction.ANY)
-                        .withProfile("manage-node-allocation")
+                        .withProfile("manage-node-allocation"),
+               new CapabilityMatcher().withCardinalReduction(CapabilityMatcher.CardinalReduction.ANY)
+                        .withProfile("rackhd-set-idrac-credentials")
         );
 
         LOGGER.info("Capability Binder registers with capability registry lookup manager");

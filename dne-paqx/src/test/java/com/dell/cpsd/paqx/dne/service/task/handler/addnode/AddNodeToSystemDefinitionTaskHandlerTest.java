@@ -7,6 +7,8 @@
 package com.dell.cpsd.paqx.dne.service.task.handler.addnode;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -40,8 +42,10 @@ import com.dell.cpsd.paqx.dne.service.workflow.addnode.AddNodeTaskConfig;
 import com.dell.cpsd.sdk.AMQPClient;
 import com.dell.cpsd.service.common.client.exception.ServiceExecutionException;
 import com.dell.cpsd.service.common.client.exception.ServiceTimeoutException;
+import com.dell.cpsd.service.system.definition.api.Component;
 import com.dell.cpsd.service.system.definition.api.ComponentsFilter;
 import com.dell.cpsd.service.system.definition.api.ConvergedSystem;
+import com.dell.cpsd.service.system.definition.api.Endpoint;
 import com.dell.cpsd.service.system.definition.api.Group;
 
 /**
@@ -108,8 +112,11 @@ public class AddNodeToSystemDefinitionTaskHandlerTest
         filter.setSystemUuid(cs.getUuid());
 
         ConvergedSystem systemToUpdate = new ConvergedSystem();
-        List<Group> groups = Arrays.asList(new Group("uuid1", "SystemCompute", Group.Type.COMPUTE, null, null, null));
+        List<Group> groups = Arrays.asList(new Group("group-uuid1", "SystemCompute", Group.Type.COMPUTE, null, null, null));
         systemToUpdate.setGroups(groups);
+        List<Endpoint> endpoints = Arrays.asList(new Endpoint("endpoint-uuid1", "HTTP", "address", 9000, "RACKHD", null),
+                new Endpoint("endpoint-uuid2", "HTTP", "address", 9001, "COMMON", null));
+        systemToUpdate.setEndpoints(endpoints);
 
         when(this.client.getConvergedSystems()).thenReturn(Arrays.asList(cs));
         when(this.client.getComponents(filter)).thenReturn(Arrays.asList(systemToUpdate));
@@ -121,11 +128,33 @@ public class AddNodeToSystemDefinitionTaskHandlerTest
 
         assertEquals(expectedResult, actualResult);
         verify(this.client, times(1)).createOrUpdateConvergedSystem(csCaptor.capture(), eq(null));
+        assertEquals(1, csCaptor.getValue().getComponents().size());
+        Component component = csCaptor.getValue().getComponents().get(0);
+        assertNotNull(component);
+        assertNotNull(component.getIdentity());
+        assertEquals("SERVER", component.getIdentity().getElementType());
+        assertEquals("symphonyUuid", component.getIdentity().getIdentifier());
+        assertEquals("nodeId", component.getIdentity().getAddress());
+        assertEquals("nodeId", component.getIdentity().getSerialNumber());
+        assertNull(component.getIdentity().getBusinessKeys());
+        assertNotNull(component.getDefinition());
+        assertEquals("POWEREDGE", component.getDefinition().getProductFamily());
+        assertEquals("POWEREDGE", component.getDefinition().getProduct());
+        assertEquals("630", component.getDefinition().getModelFamily());
+        assertEquals("R630", component.getDefinition().getModel());
+        assertNotNull(component.getDefinition());
+        assertNotNull(component.getParentGroupUuids());
+        assertEquals(1, component.getParentGroupUuids().size());
+        assertEquals("group-uuid1", component.getParentGroupUuids().get(0));
+        assertNotNull(component.getEndpoints());
+        assertEquals(2, component.getEndpoints().size());
+        assertEquals("endpoint-uuid1", component.getEndpoints().get(0));
+        assertEquals("endpoint-uuid2", component.getEndpoints().get(1));
     }
 
     /**
-     * Test error execution of AddNodeToSystemDefinitionTaskHandler.executeTask() method - test error case where no 
-     * findAvailableNodes task response was set.
+     * Test error execution of AddNodeToSystemDefinitionTaskHandler.executeTask() method - test error case where no findAvailableNodes task
+     * response was set.
      * 
      * @throws ServiceExecutionException
      * @throws ServiceTimeoutException
@@ -168,10 +197,10 @@ public class AddNodeToSystemDefinitionTaskHandlerTest
         assertEquals(expectedResult, actualResult);
         verify(this.client, times(0)).createOrUpdateConvergedSystem(csCaptor.capture(), eq(null));
     }
-    
+
     /**
-     * Test error execution of AddNodeToSystemDefinitionTaskHandler.executeTask() method - test error case where no converged systems 
-     * are present.
+     * Test error execution of AddNodeToSystemDefinitionTaskHandler.executeTask() method - test error case where no converged systems are
+     * present.
      * 
      * @since 1.0
      */
@@ -207,5 +236,41 @@ public class AddNodeToSystemDefinitionTaskHandlerTest
 
         assertEquals(expectedResult, actualResult);
         verify(this.client, times(0)).createOrUpdateConvergedSystem(csCaptor.capture(), eq(null));
+    }
+
+    /**
+     * Test execution of AddNodeToSystemDefinitionTaskHandler.executeTask() method - test case where a node that already exists in the
+     * system definition is attempted to be added again.
+     * 
+     * @since 1.0
+     */
+    @Test
+    public void testExecuteTask_no_duplicate_nodes()
+    {
+        ConvergedSystem cs = new ConvergedSystem();
+        cs.setUuid(UUID.randomUUID().toString());
+
+        NodeInfo nodeInfo = ((FirstAvailableDiscoveredNodeResponse) this.job.getTaskResponseMap().get("findAvailableNodes")).getNodeInfo();
+        Component node = new Component();
+        node.setIdentity(nodeInfo.getIdentity());
+
+        ConvergedSystem system = new ConvergedSystem();
+        system.setUuid(UUID.randomUUID().toString());
+        system.getComponents().add(node);
+
+        ComponentsFilter filter = new ComponentsFilter();
+        filter.setSystemUuid(cs.getUuid());
+
+        when(this.client.getConvergedSystems()).thenReturn(Arrays.asList(cs));
+        when(this.client.getComponents(filter)).thenReturn(Arrays.asList(system));
+
+        ArgumentCaptor<ConvergedSystem> csCaptor = ArgumentCaptor.forClass(ConvergedSystem.class);
+        AddNodeToSystemDefinitionTaskHandler instance = new AddNodeToSystemDefinitionTaskHandler(this.client);
+        boolean expectedResult = true;
+        boolean actualResult = instance.executeTask(this.job);
+
+        assertEquals(expectedResult, actualResult);
+        verify(this.client, times(1)).createOrUpdateConvergedSystem(csCaptor.capture(), eq(null));
+        assertEquals(1, csCaptor.getValue().getComponents().size());// Components list should be unaltered...
     }
 }

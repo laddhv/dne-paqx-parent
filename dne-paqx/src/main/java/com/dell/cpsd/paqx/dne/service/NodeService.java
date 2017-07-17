@@ -6,10 +6,17 @@
 package com.dell.cpsd.paqx.dne.service;
 
 import com.dell.cpsd.paqx.dne.service.model.*;
+import java.util.List;
 import com.dell.cpsd.service.common.client.exception.ServiceExecutionException;
 import com.dell.cpsd.service.common.client.exception.ServiceTimeoutException;
 
-import java.util.List;
+/**
+ * <p>
+ * Copyright &copy; 2017 Dell Inc. or its subsidiaries. All Rights Reserved. Dell EMC Confidential/Proprietary Information
+ * </p>
+ * 
+ * @since 1.0
+ */
 
 public interface NodeService
 {
@@ -54,7 +61,7 @@ public interface NodeService
             throws ServiceTimeoutException, ServiceExecutionException;
 
     /**
-     * Configure the iDRAC network settings.
+     * Configure boot order and disable PXE
      *
      * @param bootOrderSequenceRequest - The <code>BootOrderSequenceRequest</code> instance.
      *
@@ -65,4 +72,18 @@ public interface NodeService
 
     BootOrderStatus bootOrderStatus(BootOrderSequenceRequest bootOrderSequenceRequest)
             throws ServiceTimeoutException, ServiceExecutionException;
+
+    
+    /**
+     * Change Idrac credentials
+     * 
+     * @param configureBootDeviceIdracRequest - The <code>ChangeIdracCredentialsRequest</code> instance.
+     * 
+     * @return
+     * 
+     * @throws ServiceTimeoutException
+     * @throws ServiceExecutionException
+     */
+    ChangeIdracCredentialsResponse changeIdracCredentials(String nodeId) throws ServiceTimeoutException, ServiceExecutionException;
+
 }

@@ -28,9 +28,9 @@ import com.dell.cpsd.virtualization.capabilities.api.DiscoverClusterResponseInfo
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
-
 import java.util.*;
 import java.util.stream.Collectors;
+
 
 /**
  * <p>
@@ -94,12 +94,12 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
         this.consumer.addAdapter(new BootOrderSequenceResponseAdapter(this));
         this.consumer.addAdapter(new ClustersListedResponseAdapter(this));
         this.consumer.addAdapter(new CompleteNodeAllocationResponseAdapter(this));
+        this.consumer.addAdapter(new ChangeIdracCredentialsResponseAdapter(this));
     }
 
     /**
      * {@inheritDoc}
      */
-
     @Override
     public BootOrderStatus bootOrderStatus(BootOrderSequenceRequest bootOrderSequenceRequest) throws ServiceTimeoutException, ServiceExecutionException{
 
@@ -391,5 +391,72 @@ public class AmqpNodeService extends AbstractServiceClient implements NodeServic
         {
             throw new UnsupportedOperationException("Unexpected response message: " + responseMessage);
         }
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ChangeIdracCredentialsResponse changeIdracCredentials(String nodeId) throws ServiceTimeoutException, ServiceExecutionException
+    {
+        ChangeIdracCredentialsResponse responseMessage = new ChangeIdracCredentialsResponse();
+
+        try {
+            ChangeIdracCredentialsRequestMessage changeIdracCredentialsRequestMessage = new ChangeIdracCredentialsRequestMessage();
+            MessageProperties messageProperties = new MessageProperties();
+            messageProperties.setCorrelationId(UUID.randomUUID().toString());
+            messageProperties.setTimestamp(Calendar.getInstance().getTime());
+            messageProperties.setReplyTo(replyTo);
+
+            changeIdracCredentialsRequestMessage.setMessageProperties(messageProperties);
+            changeIdracCredentialsRequestMessage.setNodeID(nodeId);
+            
+            LOGGER.info("Sending Change Idrac Credentials request with correlation id: " + messageProperties.getCorrelationId());
+            
+            ServiceResponse<?> response = processRequest(10000L, new ServiceRequestCallback()
+            {
+                @Override
+                public String getRequestId()
+                {
+                    return messageProperties.getCorrelationId();
+                }
+
+                @Override
+                public void executeRequest(String requestId) throws Exception
+                {
+                    producer.publishChangeIdracCredentials(changeIdracCredentialsRequestMessage);
+                }
+            });
+            
+            ChangeIdracCredentialsResponseMessage resp = processResponse(response, ChangeIdracCredentialsResponseMessage.class);
+
+            if (resp != null)
+            {
+                if (resp.getMessageProperties() != null)
+                {
+                    if (resp.getStatus() != null)
+                    {
+                        LOGGER.info("Response for Change Idrac Credentials: " + resp.getStatus());
+                        responseMessage.setNodeId(nodeId);
+                        
+                        if ("SUCCESS".equalsIgnoreCase(resp.getStatus().toString()))
+                        {
+                            responseMessage.setMessage("SUCCESS");
+                        }
+                        else
+                        {
+                            LOGGER.error("Error response from change idrac credentials: " + resp.getChangeIdracCredentialsErrors());
+                            responseMessage.setMessage("Error while setting new credentials to the node " + nodeId);
+                        }
+                    }
+                }
+            }
+        }
+        catch(Exception e)
+        {
+            LOGGER.error("Exception in change idrac credentials: ", e);
+        }
+
+        return responseMessage;
     }
 }
