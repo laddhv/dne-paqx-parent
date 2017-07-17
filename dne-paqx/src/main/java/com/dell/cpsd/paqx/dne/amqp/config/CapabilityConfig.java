@@ -62,7 +62,7 @@ public class CapabilityConfig
                new CapabilityMatcher().withCardinalReduction(CapabilityMatcher.CardinalReduction.ANY)
                         .withProfile("rackhd-configure-idrac-network"),
                 new CapabilityMatcher().withCardinalReduction(CapabilityMatcher.CardinalReduction.ANY)
-git                         .withProfile("rackhd-configure-boot-device-idrac"),
+                        .withProfile("rackhd-configure-boot-device-idrac"),
                new CapabilityMatcher().withCardinalReduction(CapabilityMatcher.CardinalReduction.ANY)
                         .withProfile("manage-node-allocation")
         );
